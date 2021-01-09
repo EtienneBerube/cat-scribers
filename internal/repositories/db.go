@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"context"
-	"github.com/EtienneBerube/only-cats/pkg/config"
+	"github.com/EtienneBerube/cat-scribers/pkg/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"

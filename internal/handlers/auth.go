@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/EtienneBerube/only-cats/internal/models"
-	"github.com/EtienneBerube/only-cats/internal/services"
+	"github.com/EtienneBerube/cat-scribers/internal/models"
+	"github.com/EtienneBerube/cat-scribers/internal/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

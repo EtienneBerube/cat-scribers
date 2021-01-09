@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/EtienneBerube/only-cats/pkg/auth"
+	"github.com/EtienneBerube/cat-scribers/pkg/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"

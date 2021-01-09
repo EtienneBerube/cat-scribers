@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"github.com/EtienneBerube/only-cats/internal/models"
+	"github.com/EtienneBerube/cat-scribers/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -12,7 +12,7 @@ func GetUserById(id string) (*models.User, error) {
 	defer client.Disconnect(ctx)
 	defer cancel()
 
-	col := client.Database("only-cats").Collection("users")
+	col := client.Database("cat-scribers").Collection("users")
 
 	userDAO := models.UserDAO{}
 	user := models.User{}
@@ -30,12 +30,39 @@ func GetUserById(id string) (*models.User, error) {
 	return &user, nil
 }
 
+func GetAllUsers() ([]models.User, error) {
+	client, ctx, cancel := getDBConnection()
+	defer client.Disconnect(ctx)
+	defer cancel()
+
+	col := client.Database("cat-scribers").Collection("users")
+
+	cursor, err := col.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var usersDAO []models.UserDAO
+	if err = cursor.All(ctx, &usersDAO); err != nil {
+		return nil, err
+	}
+
+	var users []models.User
+
+	for _, dao := range usersDAO {
+		user := models.User{}
+		dao.ToModel(&user)
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 func SaveUser(user models.User) (string, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
 	defer cancel()
 
-	col := client.Database("only-cats").Collection("users")
+	col := client.Database("cat-scribers").Collection("users")
 
 	userDAO := models.UserDAO{}
 	user.ToDAO(&userDAO)
@@ -58,7 +85,7 @@ func UpdateUser(id string, newUser *models.User) (bool, error) {
 	defer client.Disconnect(ctx)
 	defer cancel()
 
-	col := client.Database("only-cats").Collection("users")
+	col := client.Database("cat-scribers").Collection("users")
 
 	userDAO := models.UserDAO{}
 	newUser.ToDAO(&userDAO)
@@ -78,7 +105,7 @@ func DeleteUser(id string) error {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("users")
+	col := client.Database("cat-scribers").Collection("users")
 
 	_, err := col.DeleteOne(ctx, bson.M{"_id": primitive.ObjectIDFromHex(id)})
 

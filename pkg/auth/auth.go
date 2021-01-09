@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/EtienneBerube/only-cats/pkg/config"
+	"github.com/EtienneBerube/cat-scribers/pkg/config"
 	"github.com/dgrijalva/jwt-go"
 )
 

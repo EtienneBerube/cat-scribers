@@ -1,8 +1,9 @@
 package services
 
 import (
-	"github.com/EtienneBerube/only-cats/internal/models"
-	"github.com/EtienneBerube/only-cats/internal/repositories"
+	"github.com/EtienneBerube/cat-scribers/internal/models"
+	"github.com/EtienneBerube/cat-scribers/internal/repositories"
+	"log"
 )
 
 func GetUserById(id string) (*models.User, error) {
@@ -11,6 +12,42 @@ func GetUserById(id string) (*models.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func GetAllUsers() ([]models.User, error) {
+	users, err := repositories.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func PaySubscription(user *models.User) {
+	for _, subscribedToID := range user.Subscriptions {
+		subscribedTo, err := repositories.GetUserById(subscribedToID)
+		if err != nil {
+			UnsubscribeFrom(user.ID, subscribedToID)
+			log.Printf("ERROR ON CRON: %s", err.Error())
+			continue
+		}
+		if user.Balance - subscribedTo.SubscriptionPrice < 0 {
+			UnsubscribeFrom(user.ID, subscribedToID)
+			log.Printf("CRON: %s cannot pay for %s's subscription. Unsubscribing...", user.Name, subscribedTo.Name)
+			continue
+		}else{
+			user.Balance -= subscribedTo.SubscriptionPrice
+			subscribedTo.Balance += subscribedTo.SubscriptionPrice
+			ok , err := repositories.UpdateUser(subscribedTo.ID, subscribedTo)
+			if err != nil || !ok {
+				log.Printf("CRON: Error while giving the money to %s's. Error: %s", subscribedTo.Name, err.Error())
+			}
+		}
+	}
+
+	ok, err := repositories.UpdateUser(user.ID, user)
+	if err != nil || !ok {
+		log.Printf("CRON: Error while updating %s's balance. Error: %s", user.Name, err.Error())
+	}
 }
 
 func CreateNewUser(user models.User) (string, error) {

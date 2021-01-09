@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"context"
-	"github.com/EtienneBerube/only-cats/internal/handlers"
-	"github.com/EtienneBerube/only-cats/internal/middleware"
-	"github.com/EtienneBerube/only-cats/internal/repositories"
-	"github.com/EtienneBerube/only-cats/pkg/config"
+	"github.com/EtienneBerube/cat-scribers/internal/handlers"
+	"github.com/EtienneBerube/cat-scribers/internal/middleware"
+	"github.com/EtienneBerube/cat-scribers/pkg/config"
 	"github.com/gin-gonic/gin"
+	"github.com/robfig/cron/v3"
 	"log"
 	"net/http"
 	"os"
@@ -14,18 +14,21 @@ import (
 	"time"
 )
 
-func RunServer(config config.Config) {
-	address := ":" + config.Port
-	repositories.InitDB(config)
+func RunServer() {
 
-	gin.ForceConsoleColor()
+	c := cron.New()
+	c.AddFunc("@monthly", handlers.HandleMonthlyPayments)
+	c.Start()
+
 	router := gin.New()
+	gin.ForceConsoleColor()
 
 	router.Use(gin.Recovery())
 
 	// Custom Logger
 	router.Use(gin.LoggerWithFormatter(middleware.WithLogging))
 
+	address := ":" + config.Config.Port
 	initRoutes(router)
 
 	server := &http.Server{
@@ -46,6 +49,8 @@ func RunServer(config config.Config) {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
+
+		c.Stop() // Stop Cron
 
 		server.SetKeepAlivesEnabled(false)
 		if err := server.Shutdown(ctx); err != nil {
@@ -70,20 +75,19 @@ func initRoutes(router *gin.Engine) {
 	router.POST("/login", handlers.Login)
 	router.POST("/signup", handlers.SignUp)
 
-	router.GET("/charger", handlers.GetChargers)
-	router.GET("/charger/:id", handlers.GetChargerByID)
-
-	router.GET("/user/:id/photo", handlers.GetProfilePicForUser)
-
 	authenticated := router.Group("/") // Change authService from nil to smtg else
 	{
 		authenticated.Use(middleware.Auth())
 		authenticated.GET("/user", handlers.GetCurrentUser)
 		authenticated.GET("/user/:id", handlers.GetUserByID)
-		authenticated.PUT("/user/:id", handlers.UpdateUser) // MIGHT REMOVE ID IF ONLY UPDATE TO CURRENT USER
-		authenticated.POST("/user/:id/photo", handlers.GetProfilePicForUser)
+		authenticated.PUT("/user/:id", handlers.UpdateUser)
 
-		authenticated.POST("/charger", handlers.CreateCharger)
+		authenticated.GET("/user/:id/photo", handlers.UploadPhoto)
+		authenticated.GET("/user/:id/photo/id", handlers.GetPhotoByID)
+		authenticated.GET("/user/:id/photos", handlers.GetPhotosByOwnerID)
+
+		authenticated.POST("/subscribed/:id", handlers.SubscribeTo)
+		authenticated.DELETE("/subscribed/:id", handlers.UnsubscribeFrom)
 
 	}
 }

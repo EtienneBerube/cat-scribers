@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/EtienneBerube/only-cats/cmd"
-	"github.com/EtienneBerube/only-cats/pkg/config"
+	"github.com/EtienneBerube/cat-scribers/cmd"
+	"github.com/EtienneBerube/cat-scribers/pkg/config"
 )
 
 func main() {
-	conf := config.Init()
-	cmd.RunServer(conf)
+	config.Init()
+	cmd.RunServer()
 }

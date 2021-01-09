@@ -2,9 +2,9 @@ package services
 
 import (
 	"errors"
-	"github.com/EtienneBerube/only-cats/internal/models"
-	"github.com/EtienneBerube/only-cats/internal/repositories"
-	"github.com/EtienneBerube/only-cats/pkg/vision"
+	"github.com/EtienneBerube/cat-scribers/internal/models"
+	"github.com/EtienneBerube/cat-scribers/internal/repositories"
+	"github.com/EtienneBerube/cat-scribers/pkg/vision"
 )
 
 func GetPhotoByID(id string) (*models.Photo, error) {

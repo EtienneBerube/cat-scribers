@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"github.com/EtienneBerube/only-cats/internal/models"
+	"github.com/EtienneBerube/cat-scribers/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -12,7 +12,7 @@ func GetAuthByEmail(email string) (*models.UserAuth, error) {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("auth")
+	col := client.Database("cat-scribers").Collection("auth")
 
 	query := bson.M{"email": email}
 
@@ -35,7 +35,7 @@ func SaveAuth(auth *models.UserAuth) (string, error) {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("auth")
+	col := client.Database("cat-scribers").Collection("auth")
 
 	userAuthDAO := models.UserAuthDAO{}
 	auth.ToDAO(&userAuthDAO)
@@ -58,7 +58,7 @@ func UpdateAuth(id string, auth *models.UserAuth) (string, error) {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("auth")
+	col := client.Database("cat-scribers").Collection("auth")
 
 	userAuthDAO := models.UserAuthDAO{}
 	auth.ToDAO(&userAuthDAO)
@@ -86,7 +86,7 @@ func DeleteAuth(id string) error {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("auth")
+	col := client.Database("cat-scribers").Collection("auth")
 
 	_, err := col.DeleteOne(ctx, bson.M{"_id": primitive.ObjectIDFromHex(id)})
 
@@ -98,7 +98,7 @@ func IsEmailUsed(email string) (bool, error) {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("auth")
+	col := client.Database("cat-scribers").Collection("auth")
 
 	count, err := col.CountDocuments(ctx, bson.M{"email": email})
 	if err != nil {

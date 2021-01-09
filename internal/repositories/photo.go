@@ -2,20 +2,18 @@ package repositories
 
 import (
 	"errors"
-	"github.com/EtienneBerube/only-cats/internal/models"
+	"github.com/EtienneBerube/cat-scribers/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-const SEARCH_INDEX_NAME = "photo-search-index-name"
 
 func GetPhotoByID(id string) (*models.Photo, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("photos")
+	col := client.Database("cat-scribers").Collection("photos")
 
 	query := bson.M{"_id": primitive.ObjectIDFromHex(id)}
 
@@ -38,7 +36,7 @@ func GetPhotoByName(name string) (*models.Photo, error) {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("photos")
+	col := client.Database("cat-scribers").Collection("photos")
 
 	query := bson.M{"name": name}
 
@@ -61,7 +59,7 @@ func GetAllPhotosByOwnerID(ownerID string) ([]models.Photo, error) {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("photos")
+	col := client.Database("cat-scribers").Collection("photos")
 
 	query := bson.M{"owner_id": primitive.ObjectIDFromHex(ownerID)}
 
@@ -90,11 +88,10 @@ func SearchPhotosByNameContaining(name string, ownerID string) ([]models.Photo, 
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("photos")
+	col := client.Database("cat-scribers").Collection("photos")
 
 	searchQuery := bson.D{{
 		"$search", bson.D{
-			{"index", SEARCH_INDEX_NAME},
 			{"text", bson.D{
 				{"query", name},
 				{"path", "name"},
@@ -135,7 +132,7 @@ func SavePhoto(photo *models.Photo) (string, error) {
 	defer client.Disconnect(ctx)
 	defer cancel()
 
-	col := client.Database("only-cats").Collection("photos")
+	col := client.Database("cat-scribers").Collection("photos")
 
 	photoDAO := models.PhotoDAO{}
 	photo.ToDAO(&photoDAO)
@@ -158,7 +155,7 @@ func DeletePhoto(id string) error {
 	defer cancel()
 	defer client.Disconnect(ctx)
 
-	col := client.Database("only-cats").Collection("photos")
+	col := client.Database("cat-scribers").Collection("photos")
 
 	_, err := col.DeleteOne(ctx, bson.M{"_id": primitive.ObjectIDFromHex(id)})
 
