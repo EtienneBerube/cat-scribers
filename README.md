@@ -1,5 +1,5 @@
 # Cat-Scribers
-[![Go Reference](https://pkg.go.dev/badge/github.com/EtienneBerube/cat-scribers.svg)](https://pkg.go.dev/github.com/EtienneBerube/cat-scribers)
+[![Go Reference](https://pkg.go.dev/badge/github.com/EtienneBerube/cat-scribers.svg)](https://pkg.go.dev/github.com/EtienneBerube/cat-scribers@v0.1.2)
 
 This project is an implementation of the Shopify Developer Challenge 2021. You can access the prompt by clicking 
 [here](https://docs.google.com/document/d/1ZKRywXQLZWOqVOHC4JkF3LqdpO3Llpfk_CkZPR8bjak/edit).
