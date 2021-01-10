@@ -84,10 +84,11 @@ func initRoutes(router *gin.Engine) {
 		// To access the following routes, the use needs to be authenticated
 		authenticated.GET("/user", handlers.GetCurrentUser)
 		authenticated.PUT("/user", handlers.UpdateUser)
+		authenticated.DELETE("/user", handlers.DeleteUser)
 
 		authenticated.POST("/user/photo", handlers.UploadPhoto)
 		authenticated.POST("/user/photos", handlers.UploadMultiplePhotos)
-		authenticated.DELETE("/user/photo", handlers.DeletePhoto)
+		authenticated.DELETE("/user/photo/:id", handlers.DeletePhoto)
 		authenticated.GET("/photo/:id", handlers.GetPhotoByID)
 		authenticated.GET("/user/:id/photos", handlers.GetPhotosByOwnerID)
 

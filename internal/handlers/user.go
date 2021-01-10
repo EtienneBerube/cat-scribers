@@ -74,6 +74,24 @@ func GetUserByID(c *gin.Context) {
 	return
 }
 
+// DeleteUser deletes the current user
+func DeleteUser(c *gin.Context) {
+	id, ok := c.Get("user_id")
+	if !ok {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
+		return
+	}
+	currentUserID := id.(string)
+
+	 err := services.DeleteUser(currentUserID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("No user with id %s found", currentUserID)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Successful"})
+	return
+}
+
 // SubscribeTo handles requests to subscribe the currently authenticated user to another user
 func SubscribeTo(c *gin.Context) {
 	id, ok := c.Get("user_id")
@@ -90,7 +108,7 @@ func SubscribeTo(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"message": "Successful"})
 	return
 }
 
@@ -110,6 +128,6 @@ func UnsubscribeFrom(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, gin.H{"message": "Successful"})
 	return
 }
