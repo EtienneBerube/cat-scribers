@@ -28,7 +28,6 @@ func (u *User) ToDAO(user *UserDAO){
 	user.Balance = u.Balance
 	user.SubscriptionPrice = u.SubscriptionPrice
 
-	user.Subscribers = []primitive.ObjectID{}
 
 	user.Subscriptions = []primitive.ObjectID{}
 	for _, id := range u.Subscriptions {
@@ -45,10 +44,9 @@ func (u *User) ToDAO(user *UserDAO){
 
 
 type UserDAO struct {
-	ID string `bson:"id"`
+	ID string `bson:"_id,omitempty"`
 	Name string `bson:"name"`
 	Email string `bson:"email"`
-	Subscribers []primitive.ObjectID `bson:"subscribers"`
 	Subscriptions []primitive.ObjectID `json:"subscriptions"`
 	Photos []primitive.ObjectID `bson:"photos"`
 	Balance int64 `bson:"balance"`

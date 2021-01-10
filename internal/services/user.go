@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+	"fmt"
 	"github.com/EtienneBerube/cat-scribers/internal/models"
 	"github.com/EtienneBerube/cat-scribers/internal/repositories"
 	"log"
@@ -22,33 +24,42 @@ func GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func PaySubscription(user *models.User) {
-	for _, subscribedToID := range user.Subscriptions {
-		subscribedTo, err := repositories.GetUserById(subscribedToID)
-		if err != nil {
-			UnsubscribeFrom(user.ID, subscribedToID)
-			log.Printf("ERROR ON CRON: %s", err.Error())
-			continue
-		}
-		if user.Balance - subscribedTo.SubscriptionPrice < 0 {
-			UnsubscribeFrom(user.ID, subscribedToID)
-			log.Printf("CRON: %s cannot pay for %s's subscription. Unsubscribing...", user.Name, subscribedTo.Name)
-			continue
-		}else{
-			user.Balance -= subscribedTo.SubscriptionPrice
-			subscribedTo.Balance += subscribedTo.SubscriptionPrice
-			ok , err := repositories.UpdateUser(subscribedTo.ID, subscribedTo)
-			if err != nil || !ok {
-				log.Printf("CRON: Error while giving the money to %s's. Error: %s", subscribedTo.Name, err.Error())
-			}
-		}
+func PaySubscriptionTo(user *models.User, subscribedToID string) error {
+	subscribedToUser, err := repositories.GetUserById(subscribedToID)
+	if err != nil {
+		UnsubscribeFrom(user.ID, subscribedToUser.ID)
+		log.Printf("ERROR ON CRON: %s", err.Error())
 	}
 
+	if user.Balance-subscribedToUser.SubscriptionPrice < 0 {
+		UnsubscribeFrom(user.ID, subscribedToUser.ID)
+		log.Printf("CRON: %s cannot pay for %s's subscription. Unsubscribing...", user.Name, subscribedToUser.Name)
+
+	} else {
+		user.Balance -= subscribedToUser.SubscriptionPrice
+		subscribedToUser.Balance += subscribedToUser.SubscriptionPrice
+		ok, err := repositories.UpdateUser(subscribedToUser.ID, subscribedToUser)
+		if err != nil || !ok {
+			log.Printf("CRON: Error while giving the money to %s's. Error: %s", subscribedToUser.Name, err.Error())
+		}
+	}
 	ok, err := repositories.UpdateUser(user.ID, user)
 	if err != nil || !ok {
 		log.Printf("CRON: Error while updating %s's balance. Error: %s", user.Name, err.Error())
 	}
+	return err
 }
+
+func PaySubscription(user *models.User) {
+	for _, subscribedToID := range user.Subscriptions {
+		err := PaySubscriptionTo(user, subscribedToID)
+		if err != nil {
+			log.Printf("ERROR ON CRON: %s", err.Error())
+			continue
+		}
+	}
+}
+
 
 func CreateNewUser(user models.User) (string, error) {
 	id, err := repositories.SaveUser(user)
@@ -58,17 +69,32 @@ func CreateNewUser(user models.User) (string, error) {
 	return id, nil
 }
 
+func UpdateUser(currentUserID string, user models.User) (bool, error) {
+	currentUser, err := GetUserById(currentUserID)
+	if err != nil {
+		return false, err
+	}
+	if currentUser.Email != user.Email {
+		return false, errors.New("Cannot change user email as it is used for auth")
+	}
+
+	return repositories.UpdateUser(currentUserID, &user)
+}
+
 func SubscribeTo(currentUserID string, newSubscriptionID string) (bool, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
 		return false, err
 	}
+
 	currentUser.Subscriptions = append(currentUser.Subscriptions, newSubscriptionID)
 
 	ok, err := repositories.UpdateUser(currentUserID, currentUser)
 	if err != nil {
 		return false, err
 	}
+
+	PaySubscriptionTo(currentUser, newSubscriptionID)
 
 	return ok, nil
 }
@@ -97,11 +123,16 @@ func UnsubscribeFrom(currentUserID string, subscriptionIDToRemove string) (bool,
 }
 
 func DeleteUser(id string) error {
-	err := repositories.DeleteUser(id)
-	return err
+	subscribers, err := repositories.GetAllUsersSubscribedTo(id)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Cannot get all users subscribed to %s", id))
+	}
+	for _, subscriber := range subscribers {
+		ok, err := UnsubscribeFrom(subscriber.ID, id)
+		if err != nil || !ok {
+			return errors.New(fmt.Sprintf("Cannot unsubscribe others from id:%s account. Error: %s", id, err.Error()))
+		}
+	}
+
+	return repositories.DeleteUser(id)
 }
-
-
-
-
-

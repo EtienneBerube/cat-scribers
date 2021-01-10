@@ -32,6 +32,7 @@ func Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+	return
 }
 
 func SignUp(c *gin.Context) {
@@ -86,4 +87,5 @@ func SignUp(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, resp)
+	return
 }

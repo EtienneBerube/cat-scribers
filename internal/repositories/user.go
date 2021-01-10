@@ -18,7 +18,9 @@ func GetUserById(id string) (*models.User, error) {
 	user := models.User{}
 	user.ToDAO(&userDAO)
 
-	query := bson.M{"_id": primitive.ObjectIDFromHex(id)}
+	oid, _ := primitive.ObjectIDFromHex(id)
+
+	query := bson.M{"_id": oid}
 
 	err := col.FindOne(ctx, query).Decode(&userDAO)
 	if err != nil {
@@ -38,6 +40,42 @@ func GetAllUsers() ([]models.User, error) {
 	col := client.Database("cat-scribers").Collection("users")
 
 	cursor, err := col.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var usersDAO []models.UserDAO
+	if err = cursor.All(ctx, &usersDAO); err != nil {
+		return nil, err
+	}
+
+	var users []models.User
+
+	for _, dao := range usersDAO {
+		user := models.User{}
+		dao.ToModel(&user)
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func GetAllUsersSubscribedTo(id string) ([]models.User, error) {
+	client, ctx, cancel := getDBConnection()
+	defer client.Disconnect(ctx)
+	defer cancel()
+
+	col := client.Database("cat-scribers").Collection("users")
+
+	oid, _ := primitive.ObjectIDFromHex(id)
+	query := bson.M{
+		"subscriptions": bson.M{
+			"$elemMatch": bson.M{
+				"$eq": oid,
+			},
+		},
+	}
+	cursor, err := col.Find(ctx, query)
+
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +128,11 @@ func UpdateUser(id string, newUser *models.User) (bool, error) {
 	userDAO := models.UserDAO{}
 	newUser.ToDAO(&userDAO)
 
-	query := bson.M{"_id": id}
+	userDAO.ID = "" // To preserve ID
+
+	oid, _ := primitive.ObjectIDFromHex(id)
+
+	query := bson.M{"_id": oid}
 
 	_, err := col.ReplaceOne(ctx, query, userDAO)
 	if err != nil {
@@ -107,7 +149,9 @@ func DeleteUser(id string) error {
 
 	col := client.Database("cat-scribers").Collection("users")
 
-	_, err := col.DeleteOne(ctx, bson.M{"_id": primitive.ObjectIDFromHex(id)})
+	oid, _ := primitive.ObjectIDFromHex(id)
+
+	_, err := col.DeleteOne(ctx, bson.M{"_id": oid})
 
 	return err
 }

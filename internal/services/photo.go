@@ -2,16 +2,27 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"github.com/EtienneBerube/cat-scribers/internal/models"
 	"github.com/EtienneBerube/cat-scribers/internal/repositories"
 	"github.com/EtienneBerube/cat-scribers/pkg/vision"
 )
 
-func GetPhotoByID(id string) (*models.Photo, error) {
-	photo, err := repositories.GetPhotoByID(id)
+func GetPhotoByID(currentUserID string, photoID string) (*models.Photo, error) {
+	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
 		return nil, err
 	}
+
+	photo, err := repositories.GetPhotoByID(photoID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !currentUser.IsSubscribedTo(photo.OwnerID){
+		return nil, errors.New("Unauthorized: Not subscribed to Owner")
+	}
+
 	return photo, err
 }
 
@@ -65,7 +76,46 @@ func CreatePhoto(photo models.Photo) (string, error){
 	return id, nil
 }
 
-func DeletePhoto(id string) error{
-	err := repositories.DeletePhoto(id)
-	return err
+func CreateMulitplePhotos(photos []models.Photo) ([]string, []string, error){
+	names := make([]string, len(photos))
+	for i, photo := range photos {
+		names[i] = photo.Name
+	}
+	b64s := make([]string, len(photos))
+	for i, photo := range photos {
+		b64s[i] = photo.Base64
+	}
+	oks ,err := vision.HasCatMultiple(b64s, names)
+	if err != nil {
+		return nil, nil, err
+	}
+	var rejected []string
+	var accepted []models.Photo
+
+	for i, ok := range oks{
+		if ok{
+			accepted = append(accepted, photos[i])
+		}else{
+			rejected = append(rejected, photos[i].Name)
+		}
+	}
+
+	ids ,err := repositories.SaveMultiplePhotos(accepted)
+	if err != nil {
+		return nil, nil, err
+	}
+	return ids, rejected, nil
+}
+
+func DeletePhoto(currentUserID string, photoID string) error{
+	photo, err := repositories.GetPhotoByID(photoID)
+	if err != nil {
+		return err
+	}
+
+	if photo.OwnerID != currentUserID{
+		return errors.New(fmt.Sprintf("Cannot delete photo. %s is not the owner", currentUserID))
+	}
+
+	return  repositories.DeletePhoto(photoID)
 }

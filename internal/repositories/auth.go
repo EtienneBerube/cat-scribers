@@ -53,7 +53,7 @@ func SaveAuth(auth *models.UserAuth) (string, error) {
 	return oid.Hex(), nil
 }
 
-func UpdateAuth(id string, auth *models.UserAuth) (string, error) {
+func UpdateAuth(id string, auth *models.UserAuth) (bool, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
 	defer client.Disconnect(ctx)
@@ -65,7 +65,7 @@ func UpdateAuth(id string, auth *models.UserAuth) (string, error) {
 
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 
 	_, err = col.ReplaceOne(
@@ -75,10 +75,10 @@ func UpdateAuth(id string, auth *models.UserAuth) (string, error) {
 	)
 
 	if err != nil {
-		return "", nil
+		return false, nil
 	}
 
-	return id, nil
+	return true, nil
 }
 
 func DeleteAuth(id string) error {
@@ -88,7 +88,8 @@ func DeleteAuth(id string) error {
 
 	col := client.Database("cat-scribers").Collection("auth")
 
-	_, err := col.DeleteOne(ctx, bson.M{"_id": primitive.ObjectIDFromHex(id)})
+	oid, _ := primitive.ObjectIDFromHex(id)
+	_, err := col.DeleteOne(ctx, bson.M{"_id": oid})
 
 	return err
 }

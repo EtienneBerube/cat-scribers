@@ -14,6 +14,10 @@ import (
 	"time"
 )
 
+/*
+ // TODO:
+ */
+
 func RunServer() {
 
 	c := cron.New()
@@ -74,20 +78,21 @@ func initRoutes(router *gin.Engine) {
 
 	router.POST("/login", handlers.Login)
 	router.POST("/signup", handlers.SignUp)
+	router.GET("/user/:id", handlers.GetUserByID)
 
 	authenticated := router.Group("/") // Change authService from nil to smtg else
 	{
 		authenticated.Use(middleware.Auth())
 		authenticated.GET("/user", handlers.GetCurrentUser)
-		authenticated.GET("/user/:id", handlers.GetUserByID)
-		authenticated.PUT("/user/:id", handlers.UpdateUser)
+		authenticated.PUT("/user", handlers.UpdateUser)
 
-		authenticated.GET("/user/:id/photo", handlers.UploadPhoto)
-		authenticated.GET("/user/:id/photo/id", handlers.GetPhotoByID)
+		authenticated.POST("/user/photo", handlers.UploadPhoto)
+		authenticated.POST("/user/photos", handlers.UploadMultiplePhotos)
+		authenticated.DELETE("/user/photo", handlers.DeletePhoto)
+		authenticated.GET("/photo/:id", handlers.GetPhotoByID)
 		authenticated.GET("/user/:id/photos", handlers.GetPhotosByOwnerID)
 
-		authenticated.POST("/subscribed/:id", handlers.SubscribeTo)
-		authenticated.DELETE("/subscribed/:id", handlers.UnsubscribeFrom)
-
+		authenticated.POST("/subscribe/:id", handlers.SubscribeTo)
+		authenticated.DELETE("/subscribe/:id", handlers.UnsubscribeFrom)
 	}
 }

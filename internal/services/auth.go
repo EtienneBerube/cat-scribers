@@ -19,15 +19,19 @@ func GetUserAuthByEmail(email string) (*models.UserAuth, error) {
 }
 
 func CreateNewUserAuth(userAuth *models.UserAuth) (string, error) {
-	return "1", nil
+	id, err := repositories.SaveAuth(userAuth)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
-func DeleteUserAuth(id string) (string, error) {
-	return "1", nil
+func DeleteUserAuth(id string)  error {
+	return repositories.DeleteAuth(id)
 }
 
 func ModifyUserAuth(id string, userAuth *models.UserAuth) (bool, error) {
-	return true, nil
+	return repositories.UpdateAuth(id, userAuth)
 }
 
 func CreateToken(userAuth *models.UserAuth) (string, error) {
@@ -46,7 +50,6 @@ func CreateToken(userAuth *models.UserAuth) (string, error) {
 
 // TODO CHECK IF RETURN ID OR TOKEN
 func ValidateSignUpRequest(req models.SignUpRequest) error {
-
 	if err := validateEmail(req.Email); err != nil {
 		return err
 	}
@@ -68,7 +71,6 @@ func ValidateSignUpRequest(req models.SignUpRequest) error {
 }
 
 func ValidateLoginRequest(loginRequest *models.LoginRequest, userAuth *models.UserAuth) (token string, err error) {
-
 	tryHash := GetPasswordHash(loginRequest.Email, loginRequest.Password)
 	if (userAuth.Email == loginRequest.Email) && (tryHash == userAuth.PasswordHash){
 		token, err = CreateToken(userAuth)

@@ -24,9 +24,9 @@ func Auth() gin.HandlerFunc {
 
 			c.Set("user_id", id)
 			c.Next()
+		}else {
+			c.AbortWithStatus(http.StatusUnauthorized)
 		}
-
-		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
 

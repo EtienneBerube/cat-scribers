@@ -12,7 +12,6 @@ import (
 
 const (
 	connectTimeout           = 5
-	connectionStringTemplate = "mongodb://%s:%s@%s"
 )
 
 

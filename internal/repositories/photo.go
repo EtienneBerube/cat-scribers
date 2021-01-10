@@ -15,7 +15,9 @@ func GetPhotoByID(id string) (*models.Photo, error) {
 
 	col := client.Database("cat-scribers").Collection("photos")
 
-	query := bson.M{"_id": primitive.ObjectIDFromHex(id)}
+	oid, _ := primitive.ObjectIDFromHex(id)
+
+	query := bson.M{"_id": oid}
 
 	photoDAO := models.PhotoDAO{}
 
@@ -61,7 +63,9 @@ func GetAllPhotosByOwnerID(ownerID string) ([]models.Photo, error) {
 
 	col := client.Database("cat-scribers").Collection("photos")
 
-	query := bson.M{"owner_id": primitive.ObjectIDFromHex(ownerID)}
+	oid, _ := primitive.ObjectIDFromHex(ownerID)
+
+	query := bson.M{"owner_id": oid}
 
 	cursor, err := col.Find(ctx, query)
 	if err != nil {
@@ -100,9 +104,11 @@ func SearchPhotosByNameContaining(name string, ownerID string) ([]models.Photo, 
 		},
 	}}
 
+	oid, _ := primitive.ObjectIDFromHex(ownerID)
+
 	ownerMatch := bson.D{{
 		"$match", bson.D{
-			{"owner_id", primitive.ObjectIDFromHex(ownerID)},
+			{"owner_id", oid},
 		},
 	}}
 
@@ -150,6 +156,36 @@ func SavePhoto(photo *models.Photo) (string, error) {
 	return oid.Hex(), nil
 }
 
+
+func SaveMultiplePhotos(photos []models.Photo) ([]string, error) {
+	client, ctx, cancel := getDBConnection()
+	defer client.Disconnect(ctx)
+	defer cancel()
+
+	col := client.Database("cat-scribers").Collection("photos")
+
+	var daos []interface{}
+
+	for _, photo := range photos{
+		photoDAO := models.PhotoDAO{}
+		photo.ToDAO(&photoDAO)
+		daos = append(daos, photoDAO)
+	}
+
+	results, err := col.InsertMany(ctx, daos)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []string
+	for _, oid := range results.InsertedIDs {
+		oid, _ := oid.(primitive.ObjectID)
+		ids = append(ids, oid.Hex())
+	}
+
+	return ids, nil
+}
+
 func DeletePhoto(id string) error {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -157,7 +193,9 @@ func DeletePhoto(id string) error {
 
 	col := client.Database("cat-scribers").Collection("photos")
 
-	_, err := col.DeleteOne(ctx, bson.M{"_id": primitive.ObjectIDFromHex(id)})
+	oid, _ := primitive.ObjectIDFromHex(id)
+
+	_, err := col.DeleteOne(ctx, bson.M{"_id": oid})
 
 	return err
 }
