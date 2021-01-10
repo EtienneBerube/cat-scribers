@@ -1,5 +1,10 @@
 # Cat-Scribers
 [![Go Reference](https://pkg.go.dev/badge/github.com/EtienneBerube/cat-scribers.svg)](https://pkg.go.dev/github.com/EtienneBerube/cat-scribers)
+[![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)](https://github.com/gomods/athens)
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/EtienneBerube/cat-scribers/blob/main/LICENSE)
+
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+[![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://GitHub.com/EtienneBerube)
 
 This project is an implementation of the Shopify Developer Challenge 2021. You can access the prompt by clicking 
 [here](https://docs.google.com/document/d/1ZKRywXQLZWOqVOHC4JkF3LqdpO3Llpfk_CkZPR8bjak/edit).
