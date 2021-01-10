@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// Login handles login requests
 func Login(c *gin.Context) {
 	req := models.LoginRequest{}
 
@@ -35,6 +36,7 @@ func Login(c *gin.Context) {
 	return
 }
 
+// SignUp handles sign up requests to create new users.
 func SignUp(c *gin.Context) {
 	req := models.SignUpRequest{}
 
@@ -51,13 +53,13 @@ func SignUp(c *gin.Context) {
 	}
 
 	user := models.User{
-		ID:            "",
-		Name:          req.Name,
-		Email:         req.Email,
-		Subscriptions: []string{},
-		Photos:        []string{},
+		ID:                "",
+		Name:              req.Name,
+		Email:             req.Email,
+		Subscriptions:     []string{},
+		Photos:            []string{},
 		SubscriptionPrice: req.SubscriptionPrice,
-		Balance: 100,
+		Balance:           100,
 	}
 
 	userId, err := services.CreateNewUser(user)
@@ -67,7 +69,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	userAuth := models.UserAuth{
-		Email:        user.Name,
+		Email:        user.Email,
 		UserID:       userId,
 		PasswordHash: services.GetPasswordHash(req.Email, req.Password),
 	}

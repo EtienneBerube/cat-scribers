@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// GetUserById returns a user by its ID from MongoDB
 func GetUserById(id string) (*models.User, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -32,6 +33,7 @@ func GetUserById(id string) (*models.User, error) {
 	return &user, nil
 }
 
+// GetAllUsers returns all the user registered from MongoDB
 func GetAllUsers() ([]models.User, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -59,6 +61,7 @@ func GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
+// GetAllUsersSubscribedTo Gets all the users subscribed to another user from MongoDB
 func GetAllUsersSubscribedTo(id string) ([]models.User, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -94,7 +97,7 @@ func GetAllUsersSubscribedTo(id string) ([]models.User, error) {
 
 	return users, nil
 }
-
+// SaveUser saves a user to MongoDB
 func SaveUser(user models.User) (string, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -118,6 +121,7 @@ func SaveUser(user models.User) (string, error) {
 	return oid.Hex(), nil
 }
 
+// UpdateUser updates a user in MongoDB
 func UpdateUser(id string, newUser *models.User) (bool, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -142,6 +146,7 @@ func UpdateUser(id string, newUser *models.User) (bool, error) {
 	return true, nil
 }
 
+// DeleteUser deletes a user in mongodb
 func DeleteUser(id string) error {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()

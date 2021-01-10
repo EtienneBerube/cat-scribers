@@ -8,7 +8,7 @@ type SignUpRequest struct {
 	Name              string `json:"name"`
 	Email             string `json:"email"`
 	Password          string `json:"password"`
-	SubscriptionPrice int64 `json:"subscription_price"`
+	SubscriptionPrice int64  `json:"subscription_price"`
 }
 
 type SignUpResponse struct {
@@ -33,6 +33,7 @@ type UserAuth struct {
 	PasswordHash string `json:"password_hash"`
 }
 
+// ToDAO Transfers the data from a UserAuth struct to a UserAuthDAO struct.
 func (u *UserAuth) ToDAO(dao *UserAuthDAO) {
 	dao.ID, _ = primitive.ObjectIDFromHex(u.ID)
 	dao.Email = u.Email
@@ -40,6 +41,7 @@ func (u *UserAuth) ToDAO(dao *UserAuthDAO) {
 	dao.PasswordHash = u.PasswordHash
 }
 
+// UserAuthDAO is a version of UserAuth that is used by MongoDB to interact with the data
 type UserAuthDAO struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	Email        string             `bson:"email"`
@@ -47,6 +49,7 @@ type UserAuthDAO struct {
 	PasswordHash string             `bson:"password_hash"`
 }
 
+// ToModel Transfers the data from a UserAuthDAO struct to a UserAuth struct.
 func (dao *UserAuthDAO) ToModel(auth *UserAuth) {
 	auth.ID = dao.ID.Hex()
 	auth.Email = dao.Email

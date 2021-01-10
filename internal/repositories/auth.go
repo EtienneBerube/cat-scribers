@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// GetAuthByEmail returns a UserAuth by its email from MongoDB
 func GetAuthByEmail(email string) (*models.UserAuth, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -29,7 +30,7 @@ func GetAuthByEmail(email string) (*models.UserAuth, error) {
 
 	return &userAuth, nil
 }
-
+// GetAuthByEmail saves a UserAuth to MongoDB
 func SaveAuth(auth *models.UserAuth) (string, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -53,6 +54,7 @@ func SaveAuth(auth *models.UserAuth) (string, error) {
 	return oid.Hex(), nil
 }
 
+// UpdateAuth updates a UserAuth in MongoDB
 func UpdateAuth(id string, auth *models.UserAuth) (bool, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -81,6 +83,7 @@ func UpdateAuth(id string, auth *models.UserAuth) (bool, error) {
 	return true, nil
 }
 
+// DeleteAuth deletes a UserAuth in MongoDB
 func DeleteAuth(id string) error {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -94,6 +97,7 @@ func DeleteAuth(id string) error {
 	return err
 }
 
+// IsEmailUsed checks if a given email is used by another user in MongoDB
 func IsEmailUsed(email string) (bool, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()

@@ -8,6 +8,7 @@ import (
 	"github.com/EtienneBerube/cat-scribers/pkg/vision"
 )
 
+// GetPhotoByID returns a saved photo by its ID
 func GetPhotoByID(currentUserID string, photoID string) (*models.Photo, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
@@ -19,20 +20,23 @@ func GetPhotoByID(currentUserID string, photoID string) (*models.Photo, error) {
 		return nil, err
 	}
 
-	if !currentUser.IsSubscribedTo(photo.OwnerID){
+	if !currentUser.IsSubscribedTo(photo.OwnerID) {
 		return nil, errors.New("Unauthorized: Not subscribed to Owner")
 	}
 
 	return photo, err
 }
 
-func GetAllPhotosFromOwner(currentUserID string, ownerID string) ([]models.Photo, error){
+/* GetAllPhotosFromOwner returns all the pictures from a user, given that the currently authenticated user is subscribed
+to the owner of the pictures
+ */
+func GetAllPhotosFromOwner(currentUserID string, ownerID string) ([]models.Photo, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !currentUser.IsSubscribedTo(ownerID){
+	if !currentUser.IsSubscribedTo(ownerID) {
 		return nil, errors.New("Unauthorized: Not subscribed to Owner")
 	}
 
@@ -42,14 +46,16 @@ func GetAllPhotosFromOwner(currentUserID string, ownerID string) ([]models.Photo
 	}
 	return photos, nil
 }
-
-func SearchPhotosOfOwnerByName(currentUserID string, ownerID string, name string) ([]models.Photo, error){
+/* SearchPhotosOfOwnerByName will search all photos from a given owner for photos where the name partially match the
+name provided
+*/
+func SearchPhotosOfOwnerByName(currentUserID string, ownerID string, name string) ([]models.Photo, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
 		return nil, err
 	}
 
-	if !currentUser.IsSubscribedTo(ownerID){
+	if !currentUser.IsSubscribedTo(ownerID) {
 		return nil, errors.New("Unauthorized: Not subscribed to Owner")
 	}
 
@@ -60,8 +66,9 @@ func SearchPhotosOfOwnerByName(currentUserID string, ownerID string, name string
 	return photos, nil
 }
 
-func CreatePhoto(photo models.Photo) (string, error){
-	ok ,err := vision.HasCat(photo.Base64, photo.Name)
+// CreatePhoto creates a new photo
+func CreatePhoto(photo models.Photo) (string, error) {
+	ok, err := vision.HasCat(photo.Base64, photo.Name)
 	if err != nil {
 		return "", err
 	}
@@ -69,14 +76,15 @@ func CreatePhoto(photo models.Photo) (string, error){
 	if !ok {
 		return "", errors.New("This image does not contain a cat. You clearly didn't read the terms and services... liar")
 	}
-	id ,err := repositories.SavePhoto(&photo)
+	id, err := repositories.SavePhoto(&photo)
 	if err != nil {
 		return "", err
 	}
 	return id, nil
 }
 
-func CreateMulitplePhotos(photos []models.Photo) ([]string, []string, error){
+//CreateMultiplePhotos creates multiple photos
+func CreateMultiplePhotos(photos []models.Photo) ([]string, []string, error) {
 	names := make([]string, len(photos))
 	for i, photo := range photos {
 		names[i] = photo.Name
@@ -85,37 +93,38 @@ func CreateMulitplePhotos(photos []models.Photo) ([]string, []string, error){
 	for i, photo := range photos {
 		b64s[i] = photo.Base64
 	}
-	oks ,err := vision.HasCatMultiple(b64s, names)
+	oks, err := vision.HasCatMultiple(b64s, names)
 	if err != nil {
 		return nil, nil, err
 	}
-	var rejected []string
-	var accepted []models.Photo
+	var rejected = []string{}
+	var accepted = []models.Photo{}
 
-	for i, ok := range oks{
-		if ok{
+	for i, ok := range oks {
+		if ok {
 			accepted = append(accepted, photos[i])
-		}else{
+		} else {
 			rejected = append(rejected, photos[i].Name)
 		}
 	}
 
-	ids ,err := repositories.SaveMultiplePhotos(accepted)
+	ids, err := repositories.SaveMultiplePhotos(accepted)
 	if err != nil {
 		return nil, nil, err
 	}
 	return ids, rejected, nil
 }
 
-func DeletePhoto(currentUserID string, photoID string) error{
+// DeletePhoto deletes a photo
+func DeletePhoto(currentUserID string, photoID string) error {
 	photo, err := repositories.GetPhotoByID(photoID)
 	if err != nil {
 		return err
 	}
 
-	if photo.OwnerID != currentUserID{
+	if photo.OwnerID != currentUserID {
 		return errors.New(fmt.Sprintf("Cannot delete photo. %s is not the owner", currentUserID))
 	}
 
-	return  repositories.DeletePhoto(photoID)
+	return repositories.DeletePhoto(photoID)
 }

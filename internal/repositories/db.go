@@ -9,13 +9,11 @@ import (
 	"time"
 )
 
-
 const (
-	connectTimeout           = 5
+	connectTimeout = 5
 )
 
-
-// GetConnection - Retrieves a client to the DocumentDB
+// getDBConnection returns a connection to the MongoDB instance provided by the MongoDBURL
 func getDBConnection() (*mongo.Client, context.Context, context.CancelFunc) {
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(config.Config.MongoDBURL))
@@ -32,4 +30,3 @@ func getDBConnection() (*mongo.Client, context.Context, context.CancelFunc) {
 
 	return client, ctx, cancel
 }
-

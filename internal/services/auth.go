@@ -14,10 +14,12 @@ import (
 
 const EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
 
+// GetAuthByEmail returns the UserAuth associated with the email address
 func GetUserAuthByEmail(email string) (*models.UserAuth, error) {
 	return repositories.GetAuthByEmail(email)
 }
 
+// CreateNewUserAuth creates a new UserAuth
 func CreateNewUserAuth(userAuth *models.UserAuth) (string, error) {
 	id, err := repositories.SaveAuth(userAuth)
 	if err != nil {
@@ -26,14 +28,17 @@ func CreateNewUserAuth(userAuth *models.UserAuth) (string, error) {
 	return id, nil
 }
 
-func DeleteUserAuth(id string)  error {
+// DeleteUserAuth removes a UserAuth associated with the ID
+func DeleteUserAuth(id string) error {
 	return repositories.DeleteAuth(id)
 }
 
+// ModifyUserAuth modifies a UserAuth
 func ModifyUserAuth(id string, userAuth *models.UserAuth) (bool, error) {
 	return repositories.UpdateAuth(id, userAuth)
 }
 
+// CreateToken creates a JWT token for a given user
 func CreateToken(userAuth *models.UserAuth) (string, error) {
 	var err error
 	claims := jwt.MapClaims{}
@@ -48,7 +53,7 @@ func CreateToken(userAuth *models.UserAuth) (string, error) {
 	return token, nil
 }
 
-// TODO CHECK IF RETURN ID OR TOKEN
+// ValidateSignUpRequest checks that the sign up request is valid
 func ValidateSignUpRequest(req models.SignUpRequest) error {
 	if err := validateEmail(req.Email); err != nil {
 		return err
@@ -70,28 +75,30 @@ func ValidateSignUpRequest(req models.SignUpRequest) error {
 	return nil
 }
 
+// ValidateLoginRequest checks that the login request is valid and that the credentials match
 func ValidateLoginRequest(loginRequest *models.LoginRequest, userAuth *models.UserAuth) (token string, err error) {
 	tryHash := GetPasswordHash(loginRequest.Email, loginRequest.Password)
-	if (userAuth.Email == loginRequest.Email) && (tryHash == userAuth.PasswordHash){
+	if (userAuth.Email == loginRequest.Email) && (tryHash == userAuth.PasswordHash) {
 		token, err = CreateToken(userAuth)
 
 		if err != nil {
 			return "", err
 		}
 
-	} else{
+	} else {
 		err = errors.New("Failed Login Attempt")
 	}
 
 	return token, err
 }
-
+// GetPasswordHash returns the hash for a given password. Uses email las prepend salt
 func GetPasswordHash(email string, password string) string {
 	msg := email + password
 	hash := sha256.Sum256([]byte(msg))
 	return fmt.Sprintf("%x", hash)
 }
 
+// validateEmail validates that the email matches the EMAIL_REGEX provided above. It is a modification of the RFC 5322 standard
 func validateEmail(email string) error {
 	matched, err := regexp.MatchString(EMAIL_REGEX, email)
 	if err != nil {
@@ -102,7 +109,11 @@ func validateEmail(email string) error {
 		return nil
 	}
 }
-
+/* validatePassword Checks that the password matches certain conditions:
+	- 6 characters or more
+	- one or more digits
+	- one or more uppercase letters
+ */
 func validatePassword(password string) error {
 	var err error
 

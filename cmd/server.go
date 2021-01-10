@@ -14,15 +14,13 @@ import (
 	"time"
 )
 
-/*
- // TODO:
- */
-
+// RunServer command to start the server and expose port set by env. HTTP_PORT
 func RunServer() {
 
 	c := cron.New()
 	c.AddFunc("@monthly", handlers.HandleMonthlyPayments)
 	c.Start()
+	defer c.Stop()
 
 	router := gin.New()
 	gin.ForceConsoleColor()
@@ -38,7 +36,7 @@ func RunServer() {
 	server := &http.Server{
 		Addr:         address,
 		Handler:      router,
-		ReadTimeout:  5 * time.Second,
+		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
 	}
@@ -53,8 +51,6 @@ func RunServer() {
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-
-		c.Stop() // Stop Cron
 
 		server.SetKeepAlivesEnabled(false)
 		if err := server.Shutdown(ctx); err != nil {
@@ -72,17 +68,20 @@ func RunServer() {
 	log.Println("Server stopped")
 }
 
+// initRoutes will initialize the routes available to the clients
 func initRoutes(router *gin.Engine) {
 
 	router.GET("/ping", handlers.Ping)
 
 	router.POST("/login", handlers.Login)
 	router.POST("/signup", handlers.SignUp)
+	router.GET("/users", handlers.GetAllUsers)
 	router.GET("/user/:id", handlers.GetUserByID)
 
-	authenticated := router.Group("/") // Change authService from nil to smtg else
+	authenticated := router.Group("/")
 	{
 		authenticated.Use(middleware.Auth())
+		// To access the following routes, the use needs to be authenticated
 		authenticated.GET("/user", handlers.GetCurrentUser)
 		authenticated.PUT("/user", handlers.UpdateUser)
 

@@ -9,6 +9,9 @@ import (
 	"log"
 )
 
+/* HasCat uses Google Cloud Vision API to check if the Base64 encoded image contains a cat. It also takes the name for logging purposes.
+Note: The base64 must not contain the metadata. For example, do not send "data:image/jpeg;base64,<image>", but rather only <image>
+*/
 func HasCat(imgB64 string, name string) (bool, error) {
 	ctx := context.Background()
 
@@ -54,6 +57,10 @@ func HasCat(imgB64 string, name string) (bool, error) {
 	return false, nil
 }
 
+/* HasCatMultiple uses Google Cloud Vision API to check if the Base64 encoded images contain a cat. It also takes the names for logging purposes.
+This function returns an array of boolean in the same order as the provided image array
+Note: The base64 must not contain the metadata. For example, do not send "data:image/jpeg;base64,<image>", but rather only <image>
+*/
 func HasCatMultiple(imgsB64 []string, names []string) ([]bool, error) {
 	ctx := context.Background()
 
@@ -96,6 +103,7 @@ func HasCatMultiple(imgsB64 []string, names []string) ([]bool, error) {
 			fmt.Printf("Image: %s, No Objects found\n", names[i])
 		} else {
 			fmt.Printf("Image: %s, Objects:\n", names[i])
+			imageHasCat[i] = false
 			for _, object := range resp.LocalizedObjectAnnotations {
 				fmt.Printf("%s\n", object.Name)
 				if object.Name == "Cat" {
@@ -103,7 +111,6 @@ func HasCatMultiple(imgsB64 []string, names []string) ([]bool, error) {
 					break
 				}
 			}
-			imageHasCat[i] = false
 		}
 	}
 

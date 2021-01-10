@@ -7,7 +7,8 @@ import (
 	"net/http"
 )
 
-func UploadPhoto( c *gin.Context){
+// UploadPhoto Handles any request to upload a photo. The user must be authenticated for the photo to be persisted.
+func UploadPhoto(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -33,7 +34,8 @@ func UploadPhoto( c *gin.Context){
 	return
 }
 
-func UploadMultiplePhotos (c *gin.Context){
+// UploadMultiplePhotos handles any request to upload multiple photos in a single request
+func UploadMultiplePhotos(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -47,21 +49,22 @@ func UploadMultiplePhotos (c *gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	for _, photo := range photos{
+	for _, photo := range photos {
 		photo.OwnerID = currentUserID
 	}
 
-	ids,rejected,err := services.CreateMulitplePhotos(photos)
+	ids, rejected, err := services.CreateMultiplePhotos(photos)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"ids": ids, "rejected":rejected})
+	c.JSON(http.StatusOK, gin.H{"ids": ids, "rejected": rejected})
 	return
 }
 
-func GetPhotoByID( c *gin.Context){
+// GetPhotoByID handles any request to get a photo by its ID
+func GetPhotoByID(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -71,7 +74,7 @@ func GetPhotoByID( c *gin.Context){
 
 	photoID := c.Param("id")
 
-	photo , err := services.GetPhotoByID(currentUserID, photoID)
+	photo, err := services.GetPhotoByID(currentUserID, photoID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -81,7 +84,10 @@ func GetPhotoByID( c *gin.Context){
 	return
 }
 
-func GetPhotosByOwnerID(c *gin.Context){
+/* GetAllPhotosByOwnerID handles requests where the user wants all the photos from a given user
+   This function can perform text search on the name when providing a query parameter called "name"
+ */
+func GetPhotosByOwnerID(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -90,18 +96,30 @@ func GetPhotosByOwnerID(c *gin.Context){
 	currentUserID := id.(string)
 
 	ownerID := c.Param("id")
+	nameSearch :=  c.Query("name")
 
-	photos, err := services.GetAllPhotosFromOwner(currentUserID, ownerID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	var photos []models.Photo
+	var err error
+	if nameSearch == "" {
+		photos, err = services.GetAllPhotosFromOwner(currentUserID, ownerID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}else{
+		photos, err = services.SearchPhotosOfOwnerByName(currentUserID, ownerID, nameSearch)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
-	c.JSON(http.StatusOK,photos)
+	c.JSON(http.StatusOK, photos)
 	return
 }
 
-func DeletePhoto(c *gin.Context){
+// DeletePhoto deletes a photo from a user's repository
+func DeletePhoto(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})

@@ -7,6 +7,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+// CreateToken creates a JWT token based on the claims provided by the caller.
 func CreateToken(claims jwt.MapClaims) (string, error) {
 	var err error
 
@@ -18,6 +19,7 @@ func CreateToken(claims jwt.MapClaims) (string, error) {
 	return token, nil
 }
 
+// ValidateToken validates a provided JWT token
 func ValidateToken(token string) (bool, error) {
 	result, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
@@ -34,6 +36,7 @@ func ValidateToken(token string) (bool, error) {
 	return result.Valid, nil
 }
 
+// ExtractUserId returns the authenticated user's ID from the JWT token provided
 func ExtractUserId(token string) (string, error) {
 	result, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {

@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// WithLogging is a custom formatting for the servers logging system
 func WithLogging(param gin.LogFormatterParams) string {
 
 	// your custom format

@@ -8,7 +8,8 @@ import (
 	"net/http"
 )
 
-func UpdateUser(c *gin.Context){
+// UpdateUser handles any request to update a user. The authenticated user must be the owner of this account
+func UpdateUser(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -31,7 +32,8 @@ func UpdateUser(c *gin.Context){
 	return
 }
 
-func GetCurrentUser(c *gin.Context){
+// Returns the current authenticated user. This information is taken from the context (provided by the auth middleware)
+func GetCurrentUser(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -48,7 +50,19 @@ func GetCurrentUser(c *gin.Context){
 	return
 }
 
-func GetUserByID(c *gin.Context){
+// GetAllUsers handles any request to get all the users registered
+func GetAllUsers(c *gin.Context) {
+	users, err := services.GetAllUsers()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, users)
+	return
+}
+
+// GetUserByID handles any requests to get a user by its ID
+func GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 
 	user, err := services.GetUserById(id)
@@ -60,7 +74,8 @@ func GetUserByID(c *gin.Context){
 	return
 }
 
-func SubscribeTo(c *gin.Context){
+// SubscribeTo handles requests to subscribe the currently authenticated user to another user
+func SubscribeTo(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -79,7 +94,8 @@ func SubscribeTo(c *gin.Context){
 	return
 }
 
-func UnsubscribeFrom(c *gin.Context){
+// UnsubscribeFrom handles requests to unsubscribe the currently authenticated user from another user
+func UnsubscribeFrom(c *gin.Context) {
 	id, ok := c.Get("user_id")
 	if !ok {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "No current User found"})
@@ -91,7 +107,7 @@ func UnsubscribeFrom(c *gin.Context){
 
 	user, err := services.UnsubscribeFrom(currentUserID, subscribedToID)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, user)

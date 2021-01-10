@@ -8,6 +8,7 @@ import (
 	"log"
 )
 
+// GetUserById returns a given user by its id
 func GetUserById(id string) (*models.User, error) {
 	user, err := repositories.GetUserById(id)
 	if err != nil {
@@ -15,7 +16,7 @@ func GetUserById(id string) (*models.User, error) {
 	}
 	return user, nil
 }
-
+// GetAllUsers returns all users registered to this platform
 func GetAllUsers() ([]models.User, error) {
 	users, err := repositories.GetAllUsers()
 	if err != nil {
@@ -23,7 +24,7 @@ func GetAllUsers() ([]models.User, error) {
 	}
 	return users, nil
 }
-
+// PaySubscriptionTo transfers balance of the amount in SubscriptionPrice to a user is subscribed to
 func PaySubscriptionTo(user *models.User, subscribedToID string) error {
 	subscribedToUser, err := repositories.GetUserById(subscribedToID)
 	if err != nil {
@@ -49,7 +50,7 @@ func PaySubscriptionTo(user *models.User, subscribedToID string) error {
 	}
 	return err
 }
-
+// PaySubscription Pays all users to whom a users is subscribed to
 func PaySubscription(user *models.User) {
 	for _, subscribedToID := range user.Subscriptions {
 		err := PaySubscriptionTo(user, subscribedToID)
@@ -60,7 +61,7 @@ func PaySubscription(user *models.User) {
 	}
 }
 
-
+// CreateNewUser creates a new user
 func CreateNewUser(user models.User) (string, error) {
 	id, err := repositories.SaveUser(user)
 	if err != nil {
@@ -69,6 +70,7 @@ func CreateNewUser(user models.User) (string, error) {
 	return id, nil
 }
 
+// UpdateUser updates a user with new information. The user performing the action must be owner of this account
 func UpdateUser(currentUserID string, user models.User) (bool, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
@@ -81,6 +83,7 @@ func UpdateUser(currentUserID string, user models.User) (bool, error) {
 	return repositories.UpdateUser(currentUserID, &user)
 }
 
+// SubscribeTo subscribes the current user to another user
 func SubscribeTo(currentUserID string, newSubscriptionID string) (bool, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
@@ -99,11 +102,17 @@ func SubscribeTo(currentUserID string, newSubscriptionID string) (bool, error) {
 	return ok, nil
 }
 
+// UnsubscribeFrom unsubscribes the current user from another user
 func UnsubscribeFrom(currentUserID string, subscriptionIDToRemove string) (bool, error) {
 	currentUser, err := GetUserById(currentUserID)
 	if err != nil {
 		return false, err
 	}
+
+	if currentUser.IsSubscribedTo(subscriptionIDToRemove) {
+		return false, errors.New(fmt.Sprintf("User %s is not subscribed to user %s", currentUserID, subscriptionIDToRemove))
+	}
+
 	var removeIndex int
 	for index, id := range currentUser.Subscriptions {
 		if id == subscriptionIDToRemove {
@@ -122,6 +131,7 @@ func UnsubscribeFrom(currentUserID string, subscriptionIDToRemove string) (bool,
 	return ok, nil
 }
 
+// DeleteUser deletes a user and unsubscribes every user who is subscribed to them
 func DeleteUser(id string) error {
 	subscribers, err := repositories.GetAllUsersSubscribedTo(id)
 	if err != nil {

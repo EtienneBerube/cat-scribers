@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// HandleMonthlyPayments handles the payments of all users registered. (It is recommended to call this function in a CRON job)
 func HandleMonthlyPayments() {
 	allUsers, err := services.GetAllUsers()
 	if err != nil {

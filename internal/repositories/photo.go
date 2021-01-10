@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// GetPhotoByID returns a Photo by its id from MongoDB
 func GetPhotoByID(id string) (*models.Photo, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -33,6 +34,7 @@ func GetPhotoByID(id string) (*models.Photo, error) {
 	return &photo, nil
 }
 
+// GetPhotoByID returns a Photo by its name from MongoDB
 func GetPhotoByName(name string) (*models.Photo, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -56,6 +58,7 @@ func GetPhotoByName(name string) (*models.Photo, error) {
 	return &photo, nil
 }
 
+// GetAllPhotosByOwnerID returns all the photos from a user by its ID from MongoDB
 func GetAllPhotosByOwnerID(ownerID string) ([]models.Photo, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
@@ -87,12 +90,21 @@ func GetAllPhotosByOwnerID(ownerID string) ([]models.Photo, error) {
 	return photos, nil
 }
 
+// SearchPhotosByNameContaining returns all the photos from a user where the name partially matches the provided name
 func SearchPhotosByNameContaining(name string, ownerID string) ([]models.Photo, error) {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
 	defer client.Disconnect(ctx)
 
 	col := client.Database("cat-scribers").Collection("photos")
+
+	oid, _ := primitive.ObjectIDFromHex(ownerID)
+
+	ownerMatch := bson.D{{
+		"$match", bson.D{
+			{"owner_id", oid},
+		},
+	}}
 
 	searchQuery := bson.D{{
 		"$search", bson.D{
@@ -104,17 +116,9 @@ func SearchPhotosByNameContaining(name string, ownerID string) ([]models.Photo, 
 		},
 	}}
 
-	oid, _ := primitive.ObjectIDFromHex(ownerID)
-
-	ownerMatch := bson.D{{
-		"$match", bson.D{
-			{"owner_id", oid},
-		},
-	}}
-
 	var results []models.PhotoDAO
 
-	cursor, err := col.Aggregate(ctx, mongo.Pipeline{searchQuery, ownerMatch})
+	cursor, err := col.Aggregate(ctx, mongo.Pipeline{ownerMatch, searchQuery})
 	if err != nil {
 		return nil, err
 	}
@@ -133,6 +137,7 @@ func SearchPhotosByNameContaining(name string, ownerID string) ([]models.Photo, 
 	return photos, nil
 }
 
+// SavePhoto saves a photo to MongoDB
 func SavePhoto(photo *models.Photo) (string, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -156,7 +161,7 @@ func SavePhoto(photo *models.Photo) (string, error) {
 	return oid.Hex(), nil
 }
 
-
+// SaveMultiplePhotos saves multiple photos to MongoDB
 func SaveMultiplePhotos(photos []models.Photo) ([]string, error) {
 	client, ctx, cancel := getDBConnection()
 	defer client.Disconnect(ctx)
@@ -166,7 +171,7 @@ func SaveMultiplePhotos(photos []models.Photo) ([]string, error) {
 
 	var daos []interface{}
 
-	for _, photo := range photos{
+	for _, photo := range photos {
 		photoDAO := models.PhotoDAO{}
 		photo.ToDAO(&photoDAO)
 		daos = append(daos, photoDAO)
@@ -186,6 +191,7 @@ func SaveMultiplePhotos(photos []models.Photo) ([]string, error) {
 	return ids, nil
 }
 
+// DeletePhoto deletes a photo from MongoDB
 func DeletePhoto(id string) error {
 	client, ctx, cancel := getDBConnection()
 	defer cancel()
