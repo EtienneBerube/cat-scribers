@@ -109,7 +109,7 @@ func UnsubscribeFrom(currentUserID string, subscriptionIDToRemove string) (bool,
 		return false, err
 	}
 
-	if currentUser.IsSubscribedTo(subscriptionIDToRemove) {
+	if !currentUser.IsSubscribedTo(subscriptionIDToRemove) {
 		return false, errors.New(fmt.Sprintf("User %s is not subscribed to user %s", currentUserID, subscriptionIDToRemove))
 	}
 
