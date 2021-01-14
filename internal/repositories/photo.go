@@ -118,7 +118,7 @@ func SearchPhotosByNameContaining(name string, ownerID string) ([]models.Photo, 
 
 	var results []models.PhotoDAO
 
-	cursor, err := col.Aggregate(ctx, mongo.Pipeline{ownerMatch, searchQuery})
+	cursor, err := col.Aggregate(ctx, mongo.Pipeline{searchQuery, ownerMatch})
 	if err != nil {
 		return nil, err
 	}

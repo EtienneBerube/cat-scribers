@@ -103,8 +103,8 @@ func SubscribeTo(c *gin.Context) {
 
 	subscribedToID := c.Param("id")
 
-	user, err := services.SubscribeTo(currentUserID, subscribedToID)
-	if err != nil {
+	ok, err := services.SubscribeTo(currentUserID, subscribedToID)
+	if err != nil || !ok {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -123,8 +123,8 @@ func UnsubscribeFrom(c *gin.Context) {
 
 	subscribedToID := c.Param("id")
 
-	user, err := services.UnsubscribeFrom(currentUserID, subscribedToID)
-	if err != nil {
+	ok, err := services.UnsubscribeFrom(currentUserID, subscribedToID)
+	if err != nil || !ok{
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
