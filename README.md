@@ -182,7 +182,8 @@ To access those routes, the request must have an Authorization header. Example: 
         owner_id: string
         ```
 * `GET /user/:id/photos/` - Get all photos from user with ID (must be subscribed to owner)
-    * Request: `empty`
+    * Request: 
+      * Query Param: `name: string` - a string to search pictures by
     * Response:
       _Array of:_
        ```
